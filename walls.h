@@ -12,13 +12,15 @@ private:
 public:
     Wall(int xPos, int yPos, bool collidable): xPos(xPos), yPos(yPos), collidable(collidable){}
 
+    Wall() = default;
+
     bool isCollidable() const {return collidable;}
 
     virtual int getX() const {return xPos;}
 
     virtual int getY() const {return yPos;}
 
-    virtual char draw() const = 0;
+    virtual void draw() const = 0;
 
 
 };
@@ -28,8 +30,8 @@ class SolidWall : public Wall{
 public:
     SolidWall(int xPos, int yPos): Wall(xPos,yPos,true){}
 
-    char draw() const override {
-        return '#';
+    void draw() const override {
+        std::cout<<"# ";
     }
 
 };
@@ -38,8 +40,8 @@ class GhostWall : public Wall{
 public:
     GhostWall(int xPos, int yPos): Wall(xPos,yPos,false){}
 
-    char draw() const override{
-        return '+';
+    void draw() const override{
+        std::cout<<"+ ";
     }
 };
 
