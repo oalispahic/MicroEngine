@@ -6,6 +6,9 @@ This project is licensed under the [MIT License](LICENSE).
 
 This library is suposed to be a fun little "game engine" or standalone game just to show off how much fun a terminal can be
 
+
+![Preview of the game](imgs/game.png)
+
 ---
 
 ### ✨ Features
@@ -13,7 +16,7 @@ This library is suposed to be a fun little "game engine" or standalone game just
 If you want to use it as your own "game engine" its super simple, it currently 
 supports "game" objects which by default is a 2D matrix map.
 
-![Preview of the game](imgs/game.png)
+
 
 ---
 
