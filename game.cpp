@@ -10,8 +10,9 @@ int main() {
     Game g1(x, y);
     g1.setBufferedInput(false);
     char input;
-    g1.render();
     Game::clearScreen();
+    g1.render();
+
 
 
     while (true) {

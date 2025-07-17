@@ -5,4 +5,10 @@
 #ifndef MICROENGINE_WALLS_H
 #define MICROENGINE_WALLS_H
 
+class Walls{
+private:
+    int xPos,yPos;
+
+};
+
 #endif //MICROENGINE_WALLS_H
