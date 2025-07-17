@@ -23,9 +23,9 @@ private:
 
     int currentPos = 0; //This is only used for rendering the player "trail" indicator of how many trails in array
 
-    std::pair<int, int> *walls; //Stores walls positions as a pair
 
-    bool easyWalls = false; //Flag to toggle wall borders
+    Wall **wallArray = nullptr;
+
 
     bool wallsExist = false;
 public:
@@ -36,7 +36,7 @@ public:
     }
 
     ~Game() {
-        delete[] walls;    //We all know what this does lol
+        delete[] wallArray;    //We all know what this does lol
     }
 
     void render();      //Makes the game come to life
@@ -78,29 +78,27 @@ void Game::render() {
 
             bool isWall = false;
             for (int k = 0; k < currentPos; k++) {
-                if (walls[k].first == i && walls[k].second == j &&             //Loop for the trail
-                    currentPos > 0) {                                         //Goes over the whole array each render cycle
+                if (wallArray[k]->getX() == i && wallArray[k]->getY() == j &&             //Loop for the trail
+                    currentPos > 0) {
+                    wallArray[k]->draw();                          //Goes over the whole array each render cycle
                     isWall = true;                                           //checks if there are any coordinates that are
                     break;                                                  // a valid trail
                 }
             }
-            if (isWall) {
-                std::cout << "# ";
-            } else std::cout << "  ";
+            if (!isWall) {
+                std::cout << "  ";
+            }
         }
         std::cout << std::endl;
 
     }
-    std::cout << std::boolalpha;
-    std::cout << "Easy walls toggle: " << easyWalls << '\n';
     std::cout << "Walls placed: " << currentPos;
     std::cout << std::endl;
     std::cout << "Controls: WASD -> up/left/down/right" << '\n';
     std::cout << "F -> Place wall" << '\n';
-    std::cout << "R -> Toggle easy walls"<<'\n';
-    std::cout << "C -> Clear all the walls"<<'\n';
-    std::cout << "Q -> Quit the game"<<'\n';
-
+    std::cout << "R -> Toggle easy walls" << '\n';
+    std::cout << "C -> Clear all the walls" << '\n';
+    std::cout << "Q -> Quit the game" << '\n';
 
 
 }
@@ -118,8 +116,9 @@ bool Game::validPos() {
         return false;
     }
     for (int i = 0; i < currentPos; i++) {
-        if (easyWalls) return true;
-        if (playerPosX == walls[i].first && playerPosY == walls[i].second) return false;
+        if(playerPosX == wallArray[i]->getX() && playerPosY == wallArray[i]->getY()){
+            if(wallArray[i]->isCollidable()) return false;
+        }
     }
     return true;
 }
@@ -142,23 +141,32 @@ void Game::move(char dir) {
             break;
         case 'f': {
             if (!wallsExist) {
-                walls = new std::pair<int, int>[posS];
+                //walls = new std::pair<int, int>[posS];
+                wallArray = new Wall *[posS];
                 wallsExist = true;
             }
-            auto newPos = std::make_pair(playerPosX, playerPosY);
-            walls[currentPos] = newPos;
+            //auto newPos = std::make_pair(playerPosX, playerPosY);
+            SolidWall *newWall = new SolidWall(playerPosX, playerPosY);
+            wallArray[currentPos] = newWall;
             currentPos++;
             break;
         }
-        case 'r': {
-            if (easyWalls) easyWalls = false;
-            else easyWalls = true;
-            render();
-            break;
-        }
+
         case 'c': {
             deleteWalls();
             render();
+            break;
+        }
+        case 'g':{
+            if (!wallsExist) {
+                //walls = new std::pair<int, int>[posS];
+                wallArray = new Wall *[posS];
+                wallsExist = true;
+            }
+            //auto newPos = std::make_pair(playerPosX, playerPosY);
+            GhostWall *newWall = new GhostWall(playerPosX, playerPosY);
+            wallArray[currentPos] = newWall;
+            currentPos++;
             break;
         }
     }
@@ -186,9 +194,9 @@ void Game::setBufferedInput(bool enable) {
 }
 
 void Game::deleteWalls() {
-    delete[] walls;
+    delete[] wallArray;
     currentPos = 0;
-    walls = nullptr;
+    wallArray = nullptr;
     wallsExist = false;
 }
 
