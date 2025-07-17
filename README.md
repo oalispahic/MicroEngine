@@ -7,7 +7,7 @@ This project is licensed under the [MIT License](LICENSE).
 This library is suposed to be a fun little "game engine" or standalone game just to show off how much fun a terminal can be
 
 
-![Preview of the game](imgs/game.png)
+![Preview of the game](imgs/game2.png)
 
 ---
 
