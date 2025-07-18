@@ -1,13 +1,13 @@
 This project is licensed under the [MIT License](LICENSE).
 # MicroEngine
-**A simple terminal based game (game engine) based in C++.**
+**A simple terminal game (game engine) based in C++.**
 
 ---
 
-This library is suposed to be a fun little "game engine" or standalone game just to show off how much fun a terminal can be
+This library is a fun little "game engine" or standalone game in a terminal
 
 
-![Preview of the game](imgs/game2.png)
+![Preview of the game](imgs/game3.png)
 
 ---
 
