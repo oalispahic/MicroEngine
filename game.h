@@ -31,6 +31,14 @@ private:
 
     bool wallsExist = false;    //Flag for rendering the walls
 
+    enum class wallTypes {
+        SolidWall, GhostWall, Count
+    };
+
+    int currentWall = 1;
+
+    const char *returnWallName(wallTypes wall);
+
 public:
 
     Game(int mapX, int mapY) : mapX(mapX), mapY(mapY) {}
@@ -92,6 +100,8 @@ void Game::render() {
     std::cout << "F -> Place wall" << '\n';
     std::cout << "C -> Clear all the walls" << '\n';
     std::cout << "Q -> Quit the game" << '\n';
+    std::cout << "SPACE -> Toggle wall" << '\n';
+    std::cout << "Selected wall type: " << returnWallName(wallTypes(currentWall)) << '\n';
 }
 
 void Game::walk(int steps) {
@@ -107,7 +117,7 @@ bool Game::validPos() {
         return false;
     }
     for (int i = 0; i < wallsPlaced; i++) {
-        
+
         if (playerPosX == wallArray[i]->getX() && playerPosY == wallArray[i]->getY()) {
             if (wallArray[i]->isCollidable()) return false;
         }
@@ -136,9 +146,19 @@ void Game::move(char dir) {
                 wallArray = new Wall *[posS];
                 wallsExist = true;
             }
-            auto newWall = new SolidWall(playerPosX, playerPosY);
-            wallArray[wallsPlaced] = newWall;
-            wallsPlaced++;
+            switch(currentWall){
+                case 0:{
+                    auto newWall = new SolidWall(playerPosX, playerPosY);
+                    wallArray[wallsPlaced] = newWall;
+                    wallsPlaced++;
+                }
+                case 1:{
+                    auto newWall = new GhostWall(playerPosX, playerPosY);
+                    wallArray[wallsPlaced] = newWall;
+                    wallsPlaced++;
+                }
+                break;
+            }
             break;
         }
 
@@ -147,14 +167,9 @@ void Game::move(char dir) {
             render();
             break;
         }
-        case 'g': {
-            if (!wallsExist) {
-                wallArray = new Wall *[posS];
-                wallsExist = true;
-            }
-            auto newWall = new GhostWall(playerPosX, playerPosY);
-            wallArray[wallsPlaced] = newWall;
-            wallsPlaced++;
+        case ' ': {
+            currentWall++;
+            currentWall %= static_cast<int>(wallTypes::Count);
             break;
         }
     }
@@ -162,6 +177,7 @@ void Game::move(char dir) {
         playerPosX = oldX;
         playerPosY = oldY;
     }
+
 }
 
 void Game::setBufferedInput(bool enable) {
@@ -190,6 +206,24 @@ void Game::deleteWalls() {
 
 void Game::clearScreen() {
     std::cout << "\033[2J\033[H" << std::flush;
+}
+
+const char *Game::returnWallName(Game::wallTypes wall) {
+    const char *wallName;
+    switch (wall) {
+        case wallTypes::SolidWall: {
+            wallName = "Solid wall";
+            break;
+        }
+        case wallTypes::GhostWall: {
+            wallName = "Transparent wall";
+            break;
+        }
+         default: {
+            return "??";
+        }
+    }
+    return wallName;
 }
 
 #endif
