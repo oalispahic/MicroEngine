@@ -14,40 +14,34 @@ void delay(int time) {
 }
 
 class Game {
-private:
-    int playerPosX, playerPosY; //Real player position in the map
 
-    int mapX, mapY;     //Map size given as a matrix
+private:
+
+    int playerPosX = 1; //Player coordinate X
+
+    int playerPosY = 1; //Player coordinate Y
+
+    int mapX, mapY;     //Map dimensions 
 
     int posS = (mapX - 2) * (mapY - 2); //Possible number of positions (a matrix without the borders)
 
-    int currentPos = 0; //This is only used for rendering the player "trail" indicator of how many trails in array
-
+    int wallsPlaced = 0; //Number of walls 
 
     Wall **wallArray = nullptr;
 
+    bool wallsExist = false;    //Flag for rendering the walls
 
-    bool wallsExist = false;
 public:
-    Game(int mapX, int mapY) : mapX(mapX),
-                               mapY(mapY) { //Constructor to instantiate the game object with map size
-        this->playerPosX = 1;
-        this->playerPosY = 1;
-    }
 
-    ~Game() {
-        delete[] wallArray;    //We all know what this does lol
-    }
+    Game(int mapX, int mapY) : mapX(mapX), mapY(mapY) {}
 
-    void render();      //Makes the game come to life
+    ~Game() { delete[] wallArray; }
 
-    static void clearScreen() {
-        //std::cout << "\033[H" << std::flush; //Used to clear the screen on terminals
-        std::cout << "\033[2J\033[H" << std::flush;
-    }
+    void render();
 
-    void walk(int steps = 1); //Manual walk method for testing might be used later
+    static void clearScreen();
 
+    void walk(int steps = 1); //Manual walk in x direction
 
     bool validPos(); //Bound checking method
 
@@ -62,7 +56,7 @@ public:
 void Game::render() {
     clearScreen();
     std::cout << '\n';
-    std::cout << "Wall maker V1.0 :)" << std::endl;
+    std::cout << "Wall maker V1.0 " << std::endl;
     for (int i = 0; i < mapX; i++) {
         for (int j = 0; j < mapY; j++) {
 
@@ -72,17 +66,17 @@ void Game::render() {
             }
 
             if (playerPosX == i && playerPosY == j) {       //Player position draw
-                std::cout << "! ";
+                std::cout << "¡ ";
                 continue;
             }
 
             bool isWall = false;
-            for (int k = 0; k < currentPos; k++) {
-                if (wallArray[k]->getX() == i && wallArray[k]->getY() == j &&             //Loop for the trail
-                    currentPos > 0) {
-                    wallArray[k]->draw();                          //Goes over the whole array each render cycle
-                    isWall = true;                                           //checks if there are any coordinates that are
-                    break;                                                  // a valid trail
+            for (int k = 0; k < wallsPlaced; k++) {
+                if (wallArray[k]->getX() == i && wallArray[k]->getY() == j &&   //Loop for the walls
+                    wallsPlaced > 0) {
+                    wallArray[k]->draw();                   //Goes over the whole array each render cycle
+                    isWall = true;                         //checks if there are any coordinates that are
+                    break;                                // a valid wall
                 }
             }
             if (!isWall) {
@@ -92,15 +86,12 @@ void Game::render() {
         std::cout << std::endl;
 
     }
-    std::cout << "Walls placed: " << currentPos;
+    std::cout << "Walls placed: " << wallsPlaced;
     std::cout << std::endl;
     std::cout << "Controls: WASD -> up/left/down/right" << '\n';
     std::cout << "F -> Place wall" << '\n';
-    std::cout << "R -> Toggle easy walls" << '\n';
     std::cout << "C -> Clear all the walls" << '\n';
     std::cout << "Q -> Quit the game" << '\n';
-
-
 }
 
 void Game::walk(int steps) {
@@ -115,9 +106,10 @@ bool Game::validPos() {
     if (playerPosX == mapX - 1 || playerPosX == 0 || playerPosY == mapY - 1 || playerPosY == 0) {
         return false;
     }
-    for (int i = 0; i < currentPos; i++) {
-        if(playerPosX == wallArray[i]->getX() && playerPosY == wallArray[i]->getY()){
-            if(wallArray[i]->isCollidable()) return false;
+    for (int i = 0; i < wallsPlaced; i++) {
+        
+        if (playerPosX == wallArray[i]->getX() && playerPosY == wallArray[i]->getY()) {
+            if (wallArray[i]->isCollidable()) return false;
         }
     }
     return true;
@@ -141,14 +133,12 @@ void Game::move(char dir) {
             break;
         case 'f': {
             if (!wallsExist) {
-                //walls = new std::pair<int, int>[posS];
                 wallArray = new Wall *[posS];
                 wallsExist = true;
             }
-            //auto newPos = std::make_pair(playerPosX, playerPosY);
-            SolidWall *newWall = new SolidWall(playerPosX, playerPosY);
-            wallArray[currentPos] = newWall;
-            currentPos++;
+            auto newWall = new SolidWall(playerPosX, playerPosY);
+            wallArray[wallsPlaced] = newWall;
+            wallsPlaced++;
             break;
         }
 
@@ -157,16 +147,14 @@ void Game::move(char dir) {
             render();
             break;
         }
-        case 'g':{
+        case 'g': {
             if (!wallsExist) {
-                //walls = new std::pair<int, int>[posS];
                 wallArray = new Wall *[posS];
                 wallsExist = true;
             }
-            //auto newPos = std::make_pair(playerPosX, playerPosY);
-            GhostWall *newWall = new GhostWall(playerPosX, playerPosY);
-            wallArray[currentPos] = newWall;
-            currentPos++;
+            auto newWall = new GhostWall(playerPosX, playerPosY);
+            wallArray[wallsPlaced] = newWall;
+            wallsPlaced++;
             break;
         }
     }
@@ -195,9 +183,13 @@ void Game::setBufferedInput(bool enable) {
 
 void Game::deleteWalls() {
     delete[] wallArray;
-    currentPos = 0;
+    wallsPlaced = 0;
     wallArray = nullptr;
     wallsExist = false;
+}
+
+void Game::clearScreen() {
+    std::cout << "\033[2J\033[H" << std::flush;
 }
 
 #endif

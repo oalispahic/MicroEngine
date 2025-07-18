@@ -1,6 +1,4 @@
 #include "game.h"
-
-
 #include <iostream>
 
 int main() {
@@ -22,7 +20,7 @@ int main() {
 
             if (input == 'q') break;
         }
-        delay(50);
+        delay(25);
     }
     Game::clearScreen();
 
