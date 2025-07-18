@@ -22,18 +22,15 @@ public:
 
     virtual void draw() const = 0;
 
-
 };
 
 class SolidWall : public Wall{
-
 public:
     SolidWall(int xPos, int yPos): Wall(xPos,yPos,true){}
 
     void draw() const override {
         std::cout<<"# ";
     }
-
 };
 
 class GhostWall : public Wall{
