@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <utility>
-#include <map>
+#include <set>
 #include "walls.h"
 
 void delay(int time) {
@@ -38,6 +38,8 @@ private:
     int currentWall = 1;
 
     const char *returnWallName(wallTypes wall);
+
+    std::set<std::pair<int, int>> wallCoordiantes;
 
 public:
 
@@ -146,18 +148,26 @@ void Game::move(char dir) {
                 wallArray = new Wall *[posS];
                 wallsExist = true;
             }
-            switch(currentWall){
-                case 0:{
-                    auto newWall = new SolidWall(playerPosX, playerPosY);
-                    wallArray[wallsPlaced] = newWall;
-                    wallsPlaced++;
+            std::pair<int, int> newPos = {playerPosX, playerPosY};
+            if (wallCoordiantes.find(newPos) != wallCoordiantes.end()) {
+                //if there is a wall it stops!
+                break;
+            }
+            switch (currentWall) {
+                case 0: {
+                        auto newWall = new SolidWall(playerPosX, playerPosY);
+                        wallArray[wallsPlaced] = newWall;
+                        wallCoordiantes.insert(newPos);
+                        wallsPlaced++;
+                        break;
                 }
-                case 1:{
+                case 1: {
                     auto newWall = new GhostWall(playerPosX, playerPosY);
                     wallArray[wallsPlaced] = newWall;
+                    wallCoordiantes.insert(newPos);
                     wallsPlaced++;
                 }
-                break;
+                    break;
             }
             break;
         }
@@ -219,7 +229,7 @@ const char *Game::returnWallName(Game::wallTypes wall) {
             wallName = "Transparent wall";
             break;
         }
-         default: {
+        default: {
             return "??";
         }
     }
