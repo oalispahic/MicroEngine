@@ -5,47 +5,56 @@
 #ifndef MICROENGINE_WALLS_H
 #define MICROENGINE_WALLS_H
 
-class Wall{
+class Wall {
 private:
-    int xPos,yPos;
+    int xPos, yPos;
     bool collidable;
 public:
-    Wall(int xPos, int yPos, bool collidable): xPos(xPos), yPos(yPos), collidable(collidable){}
+    Wall(int xPos, int yPos, bool collidable) : xPos(xPos), yPos(yPos), collidable(collidable) {}
 
     Wall() = default;
 
-   virtual ~Wall() = default;
+    virtual ~Wall() = default;
 
-    bool isCollidable() const {return collidable;}
+    bool isCollidable() const { return collidable; }
 
-    virtual int getX() const {return xPos;}
+    virtual int getX() const { return xPos; }
 
-    virtual int getY() const {return yPos;}
+    virtual int getY() const { return yPos; }
 
     virtual void draw() const = 0;
 
 };
 
-class SolidWall : public Wall{
+class SolidWall : public Wall {
 public:
-    SolidWall(int xPos, int yPos): Wall(xPos,yPos,true){}
+    SolidWall(int xPos, int yPos) : Wall(xPos, yPos, true) {}
 
     void draw() const override {
-        std::cout<<"# ";
+        std::cout << "# ";
 
 
     }
 };
 
-class GhostWall : public Wall{
+class GhostWall : public Wall {
 public:
-    GhostWall(int xPos, int yPos): Wall(xPos,yPos,false){}
+    GhostWall(int xPos, int yPos) : Wall(xPos, yPos, false) {}
 
-    void draw() const override{
-        std::cout<<"+ ";
+    void draw() const override {
+        std::cout << "+ ";
     }
 };
 
+class Chest : public Wall {
+    char *Contents = nullptr;
+public:
+    Chest(int xPos, int yPos) : Wall(xPos, yPos, true) {
+    }
+    void draw() const override{
+        std::cout<<"^ ";
+    }
+};
 
 
 #endif //MICROENGINE_WALLS_H
