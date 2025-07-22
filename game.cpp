@@ -15,7 +15,7 @@ int main() {
 
     while (true) {
         if (read(STDIN_FILENO, &input, 1) == 1) {
-            g1.move(input);
+            g1.commands(input);
             g1.render();
 
             if (input == 'q') break;
