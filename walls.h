@@ -14,6 +14,8 @@ public:
 
     Wall() = default;
 
+   virtual ~Wall() = default;
+
     bool isCollidable() const {return collidable;}
 
     virtual int getX() const {return xPos;}
@@ -43,5 +45,7 @@ public:
         std::cout<<"+ ";
     }
 };
+
+
 
 #endif //MICROENGINE_WALLS_H
