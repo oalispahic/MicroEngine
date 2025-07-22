@@ -30,7 +30,7 @@ private:
     bool wallsExist = false;    //Flag for rendering the walls
 
     enum class wallTypes {
-        SolidWall, GhostWall, Count
+        SolidWall, GhostWall, Chest, Count
     };
 
     int currentWall = 0;
@@ -49,7 +49,11 @@ public:
 
     Game(int mapX, int mapY) : mapX(mapX), mapY(mapY), posS((mapX - 2) * (mapY - 2)) {}
 
-    ~Game() { delete[] wallArray; }
+    ~Game() {
+        for (int i = 0; i < wallsPlaced; i++) delete wallArray[i];
+
+        delete[] wallArray;
+    }
 
     void render();
 
@@ -109,13 +113,12 @@ void Game::eraseWall() {
     delete wallArray[nullptrLocation];
 
 
-
-    for (int j = nullptrLocation; j < wallsPlaced-1; j++) {
+    for (int j = nullptrLocation; j < wallsPlaced - 1; j++) {
         wallArray[j] = wallArray[j + 1];
     }
 
     wallArray[wallsPlaced - 1] = nullptr;
-    wallsPlaced-=1;
+    wallsPlaced -= 1;
     wallCoordiantes.erase(wallToErase);
 
 }
@@ -209,6 +212,13 @@ void Game::placeWall() {
             wallArray[wallsPlaced] = newWall;
             wallCoordiantes.insert(newPos);
             wallsPlaced++;
+            break;
+        }
+        case 2: {
+            auto newWall = new Chest(playerPosX, playerPosY);
+            wallArray[wallsPlaced] = newWall;
+            wallCoordiantes.insert(newPos);
+            wallsPlaced++;
         }
             break;
     }
@@ -274,8 +284,10 @@ void Game::setBufferedInput(bool enable) {
 }
 
 void Game::deleteWalls() {
+    for (int i = 0; i < wallsPlaced; i++) delete wallArray[i];
     delete[] wallArray;
     wallsPlaced = 0;
+    wallCoordiantes.clear();
     wallArray = nullptr;
     wallsExist = false;
 }
@@ -283,6 +295,7 @@ void Game::deleteWalls() {
 void Game::clearScreen() {
     std::cout << "\033[2J\033[H" << std::flush;
 }
+
 
 const char *Game::returnWallName(Game::wallTypes wall) {
     const char *wallName;
@@ -295,6 +308,11 @@ const char *Game::returnWallName(Game::wallTypes wall) {
             wallName = "Transparent wall";
             break;
         }
+        case wallTypes::Chest: {
+            wallName = "Chest";
+            break;
+        }
+
         default: {
             return "??";
         }
