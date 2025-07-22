@@ -23,9 +23,7 @@ private:
 
     int mapX, mapY;     //Map dimensions 
 
-    int posS = (mapX - 2) * (mapY - 2); //Possible number of positions (a matrix without the borders)
-
-    int wallsPlaced = 0; //Number of walls 
+    int posS; //Possible number of positions (a matrix without the borders)
 
     Wall **wallArray = nullptr;
 
@@ -35,15 +33,21 @@ private:
         SolidWall, GhostWall, Count
     };
 
-    int currentWall = 1;
+    int currentWall = 0;
 
     const char *returnWallName(wallTypes wall);
 
     std::set<std::pair<int, int>> wallCoordiantes;
 
+    int wallsPlaced = 0; //Number of walls
+
+    std::pair<int, int> findNearestWall();
+
+    bool isWall(int x, int y);
+
 public:
 
-    Game(int mapX, int mapY) : mapX(mapX), mapY(mapY) {}
+    Game(int mapX, int mapY) : mapX(mapX), mapY(mapY), posS((mapX - 2) * (mapY - 2)) {}
 
     ~Game() { delete[] wallArray; }
 
@@ -55,13 +59,66 @@ public:
 
     bool validPos(); //Bound checking method
 
-    void move(char dir);
+    void commands(char dir);
 
     void setBufferedInput(bool enable); //Method for making the terminal output work like a game
 
     void deleteWalls();
 
+    void placeWall();
+
+    void eraseWall();
+
 };
+
+bool Game::isWall(int x, int y) {
+    std::pair<int, int> search = {x, y};
+    if (wallCoordiantes.find(search) != wallCoordiantes.end()) {
+        return true;
+    }
+    return false;
+}
+
+std::pair<int, int> Game::findNearestWall() {
+    std::vector<std::pair<int, int>> directions = {{1,  0},
+                                                   {-1, 0},
+                                                   {0,  1},
+                                                   {0,  -1}};
+
+    for (auto &i: directions) {
+        int newX = playerPosX + i.first;
+        int newY = playerPosY + i.second;
+        if (isWall(newX, newY)) return {newX, newY};
+    }
+    return {-1, -1};
+}
+
+void Game::eraseWall() {
+    std::pair<int, int> wallToErase = findNearestWall();
+    if (wallToErase.first == -1) return;
+    int nullptrLocation = -1;
+    for (int i = 0; i < wallsPlaced; i++) {
+        if (wallArray[i] != nullptr && wallArray[i]->getX() == wallToErase.first &&
+            wallArray[i]->getY() == wallToErase.second) {
+            nullptrLocation = i;
+            break;
+        }
+    }
+    if (nullptrLocation == -1) return;
+
+    delete wallArray[nullptrLocation];
+
+
+
+    for (int j = nullptrLocation; j < wallsPlaced-1; j++) {
+        wallArray[j] = wallArray[j + 1];
+    }
+
+    wallArray[wallsPlaced - 1] = nullptr;
+    wallsPlaced-=1;
+    wallCoordiantes.erase(wallToErase);
+
+}
 
 void Game::render() {
     clearScreen();
@@ -82,7 +139,8 @@ void Game::render() {
 
             bool isWall = false;
             for (int k = 0; k < wallsPlaced; k++) {
-                if (wallArray[k]->getX() == i && wallArray[k]->getY() == j &&   //Loop for the walls
+                if (wallArray[k] != nullptr && wallArray[k]->getX() == i && wallArray[k]->getY() == j &&
+                    //Loop for the walls
                     wallsPlaced > 0) {
                     wallArray[k]->draw();                   //Goes over the whole array each render cycle
                     isWall = true;                         //checks if there are any coordinates that are
@@ -118,8 +176,9 @@ bool Game::validPos() {
     if (playerPosX == mapX - 1 || playerPosX == 0 || playerPosY == mapY - 1 || playerPosY == 0) {
         return false;
     }
-    for (int i = 0; i < wallsPlaced; i++) {
 
+    for (int i = 0; i < wallsPlaced; i++) {
+        if (wallArray[i] == nullptr) continue;
         if (playerPosX == wallArray[i]->getX() && playerPosY == wallArray[i]->getY()) {
             if (wallArray[i]->isCollidable()) return false;
         }
@@ -127,7 +186,36 @@ bool Game::validPos() {
     return true;
 }
 
-void Game::move(char dir) {
+void Game::placeWall() {
+    if (!wallsExist) {
+        wallArray = new Wall *[posS];
+        wallsExist = true;
+    }
+    std::pair<int, int> newPos = {playerPosX, playerPosY};
+    if (wallCoordiantes.find(newPos) != wallCoordiantes.end()) {
+        //if there is a wall it stops!
+        return;
+    }
+    switch (currentWall) {
+        case 0: {
+            auto newWall = new SolidWall(playerPosX, playerPosY);
+            wallArray[wallsPlaced] = newWall;
+            wallCoordiantes.insert(newPos);
+            wallsPlaced++;
+            break;
+        }
+        case 1: {
+            auto newWall = new GhostWall(playerPosX, playerPosY);
+            wallArray[wallsPlaced] = newWall;
+            wallCoordiantes.insert(newPos);
+            wallsPlaced++;
+        }
+            break;
+    }
+
+}
+
+void Game::commands(char dir) {
     int oldX = playerPosX;
     int oldY = playerPosY;
     switch (dir) {
@@ -144,37 +232,15 @@ void Game::move(char dir) {
             playerPosY++;
             break;
         case 'f': {
-            if (!wallsExist) {
-                wallArray = new Wall *[posS];
-                wallsExist = true;
-            }
-            std::pair<int, int> newPos = {playerPosX, playerPosY};
-            if (wallCoordiantes.find(newPos) != wallCoordiantes.end()) {
-                //if there is a wall it stops!
-                break;
-            }
-            switch (currentWall) {
-                case 0: {
-                        auto newWall = new SolidWall(playerPosX, playerPosY);
-                        wallArray[wallsPlaced] = newWall;
-                        wallCoordiantes.insert(newPos);
-                        wallsPlaced++;
-                        break;
-                }
-                case 1: {
-                    auto newWall = new GhostWall(playerPosX, playerPosY);
-                    wallArray[wallsPlaced] = newWall;
-                    wallCoordiantes.insert(newPos);
-                    wallsPlaced++;
-                }
-                    break;
-            }
+            placeWall();
             break;
         }
-
         case 'c': {
             deleteWalls();
-            render();
+            break;
+        }
+        case 'x': {
+            eraseWall();
             break;
         }
         case ' ': {
